@@ -49,8 +49,12 @@ public final class Tweener: Equatable {
     /// Handle the display link tick.
     @objc fileprivate static func tick(link: CADisplayLink) {
         let dt = link.timestamp - previousTimestamp
-        let tweensDidFinish = tweens.reduce(false, { return $0 || $1.tick(elapsedTime: dt) })
+        // Send a tick to all unpaused tweens. If any of them returns a true (indicating completion),
+        // we will do a pruning pass afterwards.
+        let tweensDidFinish = tweens.filter({ !$0.isPaused })
+                                    .reduce(false, { return $0 || $1.tick(elapsedTime: dt) })
         if tweensDidFinish {
+            // Remove all tweens flagged as complete.
             tweens = tweens.filter({ !$0.isComplete })
         }
         previousTimestamp = link.timestamp
@@ -78,11 +82,12 @@ public final class Tweener: Equatable {
     ///   - duration: The duration of the tween, in seconds.
     ///   - from: The starting value of the tween.
     ///   - to: The ending value of the tween.
+    ///   - easing: The easing function to apply to the Tween. By default, `Quadratic.easeInOut` is used.
     ///   - progress: The closure to be invoked when the tween updates.
     ///   - completion: The optional closure to be invoked when the tween completes.
     /// - Returns: The tweener object which is useful for pausing or canceling the tween.
-    @discardableResult public static func tween(duration: CFTimeInterval, from: Double = 0.0, to: Double = 1.0, easing: @escaping TweenerEasing.EasingTransform = TweenerEasing.Quadratic.easeInOut, progress: @escaping TweenProgress, completion: TweenComplete? = nil) -> Tweener {
-        let tweener = Tweener(id: idCounter, duration: duration, from: from, to: to, easing: easing, progress: progress, completion: completion)
+    @discardableResult public static func tween(duration: CFTimeInterval, delay: CFTimeInterval = 0.0, from: Double = 0.0, to: Double = 1.0, easing: @escaping TweenerEasing.EasingTransform = TweenerEasing.Quadratic.easeInOut, progress: @escaping TweenProgress, completion: TweenComplete? = nil) -> Tweener {
+        let tweener = Tweener(id: idCounter, duration: duration, delay: delay, from: from, to: to, easing: easing, progress: progress, completion: completion)
         tweens.append(tweener)
         idCounter += 1
         return tweener
@@ -95,6 +100,9 @@ public final class Tweener: Equatable {
     
     /// The duration of the tween.
     fileprivate let duration: CFTimeInterval
+    
+    /// The initial delay before the tween starts.
+    fileprivate let delay: CFTimeInterval
     
     /// The starting value of the tween.
     fileprivate let fromValue: Double
@@ -121,17 +129,24 @@ public final class Tweener: Equatable {
     /// The amount of time that has elapsed since the tween started. This value does not increase while the tween is paused.
     fileprivate(set) var elapsedTime: CFTimeInterval = 0.0
     
+    /// Keeps track of whether the initial progress callback invocation has happened.
+    fileprivate var initialProgressCalled: Bool = false
+    
     // MARK: Lifecycle
     
-    fileprivate init(id: Int, duration: CFTimeInterval, from: Double = 0.0, to: Double = 1.0, easing: @escaping TweenerEasing.EasingTransform, progress: @escaping TweenProgress, completion: TweenComplete? = nil) {
+    /// The initializer is fileprivate. Please use `Tweener.tween(...)` to instantiate tweeners.
+    fileprivate init(id: Int, duration: CFTimeInterval, delay: CFTimeInterval, from: Double, to: Double, easing: @escaping TweenerEasing.EasingTransform, progress: @escaping TweenProgress, completion: TweenComplete?) {
         self.id = id
-        self.duration = duration
+        self.duration = max(0.0, duration)
+        self.delay = max(0.0, delay)
         self.fromValue = from
         self.toValue = to
         self.progress = progress
         self.easing = easing
         self.completion = completion
-        self.progress(from, 0.0)
+        if delay <= 0.0 {
+            self.progress(from, 0.0)
+        }
     }
     
     /// Cancel a tween. Calling this method will cause the completion closure to be invoked with a value of false.
@@ -143,21 +158,57 @@ public final class Tweener: Equatable {
     /// Invoked by the class to advance the tween.
     /// - Returns: `true` if the tween finished, otherwise `false`.
     fileprivate func tick(elapsedTime dt: CFTimeInterval) -> Bool {
+        // Do nothing if this tween is paused (this shouldn't happen).
+        guard !isPaused else { return false }
+        
+        // Add to the elapsed time.
         elapsedTime += dt
-        guard elapsedTime < duration else {
+        
+        // If the elapsed time has not exceeded the delay, nothing will happen yet.
+        guard elapsedTime >= delay else { return false }
+        
+        // If the initial progress call has not been made, make it now.
+        guard initialProgressCalled else {
+            initialProgressCalled = true
+            self.progress(0.0, 0.0)
+            return false
+        }
+        
+        let progressTime = elapsedTime - delay
+        
+        // Check whether this tween has completed. If so, take appropriate action.
+        guard progressTime < duration else {
+            // Call the progress handler with final values.
             self.progress(toValue, duration)
+            
+            // Call the completion handler, if present.
             completion?(true)
+            
+            // Mark self complete.
             isComplete = true
+            
+            // Report that we finished so the static tick method performs a cleanup sweep.
             return true
         }
-        let progress = elapsedTime / duration
+        
+        // Calcualte the tween's progress toward its duration.
+        let progress = progressTime / duration
+        
+        // Run that value through the tween's easing function.
         let eased = easing(progress)
+        
+        // Calculate how the eased progress translates into the value range of the tween.
         let value = (toValue - fromValue) * eased + fromValue
+        
+        // Call the progress closure.
         self.progress(value, elapsedTime)
+        
+        // This tween did not finish.
         return false
     }
 }
 
+// Implementing equality operator to conform to the Equatible protocol.
 public func == (t0: Tweener, t1: Tweener) -> Bool { return t0.id == t1.id }
 
 public enum TweenerEasing {
