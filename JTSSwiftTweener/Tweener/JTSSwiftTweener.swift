@@ -8,6 +8,8 @@
 
 import UIKit
 
+/// The `Tweener` class allows for the easy animation of arbitrary numeric values,
+/// including those that are not associated with views.
 public final class Tweener: Equatable {
     
     /// A closure invoked when the tween updates.
@@ -30,6 +32,7 @@ public final class Tweener: Equatable {
         }
     }
     
+    /// The display link that drives the animation engine.
     fileprivate static let displayLink: CADisplayLink = {
         let dl = CADisplayLink(target: Tweener.self, selector: #selector(tick(link:)))
         dl.add(to: .main, forMode: .commonModes)
@@ -37,8 +40,10 @@ public final class Tweener: Equatable {
         return dl
     }()
     
+    /// Used to generate unique ids for the individual `Tweener` instances.
     fileprivate static var idCounter: Int = 0
     
+    /// The last update of the tween, used to determine the elapsed time between ticks.
     fileprivate static var previousTimestamp: CFTimeInterval = 0.0
     
     /// Handle the display link tick.
@@ -109,6 +114,7 @@ public final class Tweener: Equatable {
     /// When unpaused, the tween resumes where it left off, regardless of the elapsed time.
     public var isPaused: Bool = false
     
+    /// Set once the tween is completed.
     fileprivate var isComplete: Bool = false
     
     /// The amount of time that has elapsed since the tween started. This value does not increase while the tween is paused.
@@ -158,23 +164,29 @@ public enum TweenerEasing {
     /// A closure which takes progress scalar (0.0 - 1.0) and transforms it to a different progress scalar.
     public typealias EasingTransform = (Double) -> Double
     
+    /// The `Linear` easing does not ease the progress.
     public enum Linear {
         public static let easeNone: EasingTransform = {
             (progress: Double) -> Double in return progress
         }
     }
     
+    /// The `Quadratic` easing is an average easing family, similar to what is provided by CAAnimation.
     public enum Quadratic {
+        
+        /// The animation starts slowly and ends more quickly.
         public static let easeIn: EasingTransform = {
             (progress: Double) -> Double in
             return progress * progress
         }
         
+        /// The animation starts quickly and ends more slowly.
         public static let easeOut: EasingTransform = {
             (progress: Double) -> Double in
             return -(progress * (progress - 2.0))
         }
         
+        /// The animation is slow at both ends and quicker in the middle.
         public static let easeInOut: EasingTransform = {
             (progress: Double) -> Double in
             if (progress < 0.5) {
