@@ -58,6 +58,7 @@ public final class Tweener: Equatable {
     
     /// Start sending updates to the Tweener instances.
     fileprivate static func resume() {
+        guard displayLink.isPaused else { return }
         previousTimestamp = CACurrentMediaTime()
         displayLink.isPaused = false
     }
