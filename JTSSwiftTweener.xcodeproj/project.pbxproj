@@ -13,7 +13,6 @@
 		BC86E1431DFC52940056D82B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC86E1421DFC52940056D82B /* Assets.xcassets */; };
 		BC86E1461DFC52940056D82B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BC86E1441DFC52940056D82B /* LaunchScreen.storyboard */; };
 		BC86E14F1DFC52DD0056D82B /* JTSSwiftTweener.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC86E14E1DFC52DD0056D82B /* JTSSwiftTweener.swift */; };
-		BC99CFF11DFCBF4800B6B74A /* UIFont+JTSSwiftTweener.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC99CFF01DFCBF4800B6B74A /* UIFont+JTSSwiftTweener.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,7 +24,6 @@
 		BC86E1451DFC52940056D82B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		BC86E1471DFC52940056D82B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BC86E14E1DFC52DD0056D82B /* JTSSwiftTweener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JTSSwiftTweener.swift; sourceTree = "<group>"; };
-		BC99CFF01DFCBF4800B6B74A /* UIFont+JTSSwiftTweener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIFont+JTSSwiftTweener.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,7 +56,6 @@
 		BC86E13A1DFC52940056D82B /* JTSSwiftTweener */ = {
 			isa = PBXGroup;
 			children = (
-				BC99CFEF1DFCBF3100B6B74A /* Extensions */,
 				BC86E14D1DFC52C20056D82B /* Tweener */,
 				BC86E13B1DFC52940056D82B /* AppDelegate.swift */,
 				BC86E13D1DFC52940056D82B /* ViewController.swift */,
@@ -76,14 +73,6 @@
 				BC86E14E1DFC52DD0056D82B /* JTSSwiftTweener.swift */,
 			);
 			path = Tweener;
-			sourceTree = "<group>";
-		};
-		BC99CFEF1DFCBF3100B6B74A /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				BC99CFF01DFCBF4800B6B74A /* UIFont+JTSSwiftTweener.swift */,
-			);
-			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,7 +151,6 @@
 				BC86E13E1DFC52940056D82B /* ViewController.swift in Sources */,
 				BC86E13C1DFC52940056D82B /* AppDelegate.swift in Sources */,
 				BC86E14F1DFC52DD0056D82B /* JTSSwiftTweener.swift in Sources */,
-				BC99CFF11DFCBF4800B6B74A /* UIFont+JTSSwiftTweener.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
