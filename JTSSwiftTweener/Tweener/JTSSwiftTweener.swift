@@ -19,8 +19,9 @@ public final class Tweener: Equatable {
     public typealias TweenProgress = (Double, Tweener) -> Void
     
     /// A closure invoked when the tween completes or is canceled.
-    /// - The `Bool` value will be `true` if the the tween completed and `false` if it was canceled.
-    public typealias TweenComplete = (Bool) -> Void
+    /// - Parameter Bool: Will be `true` if the the tween completed and `false` if it was canceled.
+    /// - Parameter Tweener: A reference to the tweener invoking the closure.
+    public typealias TweenComplete = (Bool, Tweener) -> Void
     
     /// The currently active tweens.
     fileprivate static var tweens: [Tweener] = [] {
@@ -158,7 +159,7 @@ public final class Tweener: Equatable {
     /// Cancel a tween. Calling this method will cause the completion closure to be invoked with a value of false.
     public func cancel() {
         isComplete = true
-        completion?(false)
+        completion?(false, self)
     }
     
     /// Invoked by the class to advance the tween.
@@ -188,7 +189,7 @@ public final class Tweener: Equatable {
             self.progress(toValue, self)
             
             // Call the completion handler, if present.
-            completion?(true)
+            completion?(true, self)
             
             // Mark self complete.
             isComplete = true
