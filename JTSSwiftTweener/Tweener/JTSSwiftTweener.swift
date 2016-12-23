@@ -13,9 +13,10 @@ import UIKit
 public final class Tweener: Equatable {
     
     /// A closure invoked when the tween updates.
-    /// The `Double` parameter is the current value of the tween. The `CFTimeInterval` parameter is the elapsed time of the tween.
+    /// - Parameter Double: This parameter is the current value of the tween. 
+    /// - Parameter Tweener: A reference to the tweener invoking the closure.
     /// - Note: The `TweenProgress` closure is gauranteed to be called with the `from` value first and the `to` value of the tween immediately prior to the `TweenComplete` closure being called.
-    public typealias TweenProgress = (Double, CFTimeInterval) -> Void
+    public typealias TweenProgress = (Double, Tweener) -> Void
     
     /// A closure invoked when the tween completes or is canceled.
     /// - The `Bool` value will be `true` if the the tween completed and `false` if it was canceled.
@@ -126,8 +127,13 @@ public final class Tweener: Equatable {
     /// Set once the tween is completed.
     fileprivate var isComplete: Bool = false
     
-    /// The amount of time that has elapsed since the tween started. This value does not increase while the tween is paused.
+    /// The amount of time that has elapsed since the tween was created. This value does not increase while the tween is paused, but does increase during the delay interval.
     fileprivate(set) var elapsedTime: CFTimeInterval = 0.0
+    
+    /// The time elapsed as the tween progresses. Will be 0.0 if the tween is in its `delay` period and will not exceed `duration`.
+    var progressTime: CFTimeInterval {
+        return max(0.0, min(duration, elapsedTime - delay))
+    }
     
     /// Keeps track of whether the initial progress callback invocation has happened.
     fileprivate var initialProgressCalled: Bool = false
@@ -145,7 +151,7 @@ public final class Tweener: Equatable {
         self.easing = easing
         self.completion = completion
         if delay <= 0.0 {
-            self.progress(from, 0.0)
+            self.progress(from, self)
         }
     }
     
@@ -170,7 +176,7 @@ public final class Tweener: Equatable {
         // If the initial progress call has not been made, make it now.
         guard initialProgressCalled else {
             initialProgressCalled = true
-            self.progress(0.0, 0.0)
+            self.progress(0.0, self)
             return false
         }
         
@@ -179,7 +185,7 @@ public final class Tweener: Equatable {
         // Check whether this tween has completed. If so, take appropriate action.
         guard progressTime < duration else {
             // Call the progress handler with final values.
-            self.progress(toValue, duration)
+            self.progress(toValue, self)
             
             // Call the completion handler, if present.
             completion?(true)
@@ -201,7 +207,7 @@ public final class Tweener: Equatable {
         let value = (toValue - fromValue) * eased + fromValue
         
         // Call the progress closure.
-        self.progress(value, elapsedTime)
+        self.progress(value, self)
         
         // This tween did not finish.
         return false
