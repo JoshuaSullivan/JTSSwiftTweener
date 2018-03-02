@@ -14,7 +14,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var label: UILabel! {
         didSet {
-            label.font = UIFont.monospacedDigitSystemFont(ofSize: 24.0, weight: UIFontWeightLight)
+            label.font = UIFont.monospacedDigitSystemFont(ofSize: 24.0, weight: UIFont.Weight.light)
             label.layer.borderWidth = 1.0
             label.layer.borderColor = UIColor.darkGray.cgColor
         }
@@ -39,8 +39,8 @@ class ViewController: UIViewController {
             let string = String(format: "%0.1f", progress)
             self?.label.text = string
         }, completion: {
-            [weak self] completed in
-            self?.button.isEnabled = true
+            [weak self] completed, _ in
+            self?.button.isEnabled = completed
         })
     }
 }
